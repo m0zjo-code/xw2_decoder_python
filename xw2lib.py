@@ -1,4 +1,4 @@
-
+from tabulate import tabulate
 
 def open_text_file(in_file_name):
     f = open(in_file_name, "r")
@@ -63,8 +63,6 @@ def split_packet(packet):
 
 def decode_packet(packet):
     
-    print(packet)
-    
     ch_offset = 3
     
     try:
@@ -72,66 +70,102 @@ def decode_packet(packet):
     except:
         satellite_name = "Invalid Callsign"
     
-    frame_mark = frame_lookup(packet[ch_offset+1])
+    try:
+        frame_mark = frame_lookup(packet[ch_offset+1])
+    except:
+        frame_mark = ("Unknown", "Unknown", "Unknown")
     
-    sat_mode = op_mode(packet[ch_offset+2])
+    try:
+        sat_mode = op_mode(packet[ch_offset+2])
+    except:
+        sat_mode = ("Unknown", "Unknown", "Unknown")
     
-    supply_v = supply_voltage_convert(packet[ch_offset+3])
+    try:
+        supply_v = supply_voltage_convert(packet[ch_offset+3])
+    except:
+        supply_v = ("Unknown", "Unknown", "Unknown")
     
-    supply_i = supply_current_convert(packet[ch_offset+4])
+    try:
+        supply_i = supply_current_convert(packet[ch_offset+4])
+    except:
+        supply_i = ("Unknown", "Unknown", "Unknown")
     
-    dcdc_out_v = dcdc_out_v_convert(packet[ch_offset+5]) 
+    try:
+        dcdc_out_v = dcdc_out_v_convert(packet[ch_offset+5])
+    except:
+        dcdc_out_v = ("Unknown", "Unknown", "Unknown")
+        
+    try:    
+        dcdc_out_i = dcdc_out_i_convert(packet[ch_offset+6])
+    except:
+        dcdc_out_i = ("Unknown", "Unknown", "Unknown")
     
-    dcdc_out_i = dcdc_out_i_convert(packet[ch_offset+6])
-    
-    obc_v = obc_v_convert(packet[ch_offset+7])
+    try:
+        obc_v = obc_v_convert(packet[ch_offset+7])
+    except:
+        obc_v = ("Unknown", "Unknown", "Unknown")
     
     try:
         obc_temp = obc_temp_convert(packet[ch_offset+8])
     except:
-        obc_temp = "Unknown"
+        obc_temp = ("Unknown", "Unknown", "Unknown")
     
     try:
         pa_temp = pa_temp_convert(packet[ch_offset+9])
     except:
-        pa_temp = "Unknown"
+        pa_temp = ("Unknown", "Unknown", "Unknown")
         
     try:
         rx_agc = rx_agc_convert(packet[ch_offset+10])
     except:
-        rx_agc = "Unknown"
+        rx_agc = ("Unknown", "Unknown", "Unknown")
         
     try:
         rf_pwr_fwd = rf_pwr_fwd_convert(packet[ch_offset+11])
     except:
-        rf_pwr_fwd = "Unknown"
+        rf_pwr_fwd = ("Unknown", "Unknown", "Unknown")
         
     try:
         rf_pwr_rev = rf_pwr_rev_convert(packet[ch_offset+12])
     except:
-        rf_pwr_rev = "Unknown"
+        rf_pwr_rev = ("Unknown", "Unknown", "Unknown")
         
     cpu_info = cpu_info_convert(packet[ch_offset+13:ch_offset+23])
     
-    print(satellite_name)
-    print(frame_mark)
-    print(sat_mode)
-    print(supply_v)
-    print(supply_i)
-    print(dcdc_out_v)
-    print(dcdc_out_i)
-    print(obc_v)
-    print(obc_temp)
-    print(pa_temp)
-    print(rx_agc)
-    print(rf_pwr_fwd)
-    print(rf_pwr_rev)
-    print(cpu_info)
+    #print(satellite_name)
+    #print(frame_mark)
+    #print(sat_mode)
+    #print(supply_v)
+    #print(supply_i)
+    #print(dcdc_out_v)
+    #print(dcdc_out_i)
+    #print(obc_v)
+    #print(obc_temp)
+    #print(pa_temp)
+    #print(rx_agc)
+    #print(rf_pwr_fwd)
+    #print(rf_pwr_rev)
+    #print(cpu_info)
+    
+    return (satellite_name, 
+            frame_mark, 
+            sat_mode, 
+            supply_v, 
+            supply_i, 
+            dcdc_out_v, 
+            dcdc_out_i, 
+            obc_v, 
+            obc_temp, 
+            pa_temp, 
+            rx_agc, 
+            rf_pwr_fwd, 
+            rf_pwr_rev, 
+            cpu_info)
     
     
 def cpu_info_convert(packet):
-    print(packet)
-    print(len(packet))
+    #print(packet)
+    #print(len(packet))
     packet = ''.join(packet)
     packet = bin(int(packet, 16))[2:].zfill(len(packet)*4)
     
@@ -139,12 +173,12 @@ def cpu_info_convert(packet):
         cpu_reset_ctr = int(get_word(packet, 0), 2)
     except:
         cpu_reset_ctr = -1
-        
+    
     try:
         cmd_tx_ctr = int(get_word(packet, 1)[7-7:8-5], 2)
     except:
         cmd_tx_ctr = -1
-        
+     
     try:
         crc_result = int(get_word(packet, 1)[7-4], 2)
     except:
@@ -280,10 +314,31 @@ def cpu_info_convert(packet):
     except:
         check_flag = -1
         
-    output = [cpu_reset_ctr, cmd_tx_ctr, crc_result, ins1, ins2, tlm_frames_rx, tlm_frames_tx, ins3, ins4, obc_op_mode, 
-              write_flash_success, i2c_watchdog_enable, i2c_recon_ctr, tc_sw_watchdog_switch, tc_sw_watchdog_reset_no, 
-              adc_sw_reset_switch, adc_sw_reset_no, spi_watchdog_switch, spi_meas_watchdog_no, flash_config_successful, 
-              tlm_packet_ctr, sat_no, software_version, tlm_tx_rate, check_flag]
+    output = (cpu_reset_ctr, 
+              cmd_tx_ctr, 
+              crc_result, 
+              ins1, 
+              ins2, 
+              tlm_frames_rx, 
+              tlm_frames_tx, 
+              ins3, 
+              ins4, 
+              obc_op_mode, 
+              write_flash_success, 
+              i2c_watchdog_enable, 
+              i2c_recon_ctr, 
+              tc_sw_watchdog_switch, 
+              tc_sw_watchdog_reset_no, 
+              adc_sw_reset_switch, 
+              adc_sw_reset_no, 
+              spi_watchdog_switch, 
+              spi_meas_watchdog_no, 
+              flash_config_successful, 
+              tlm_packet_ctr, 
+              sat_no, 
+              software_version, 
+              tlm_tx_rate, 
+              check_flag)
         
     return output
 
@@ -293,51 +348,51 @@ def get_word(packet, w):
     
 def rf_pwr_rev_convert(packet):
     N = float(packet)/10
-    return "%.1fmW" % N  
+    return "%.1fmW" % N, N, "mW"  
     
 def rf_pwr_fwd_convert(packet):
     N = int(packet)
-    return "%imW" % N
+    return "%imW" % N, N, "mW"
     
 def rx_agc_convert(packet):
     N = float(packet)
     val = N*1.3/100
-    return "%.2fV" % val
+    return "%.2fV" % val, val, "V"
     
 def pa_temp_convert(packet):
     N = int(packet[1:2])
     sgn = int(packet[0])
     val = -1 * sgn + N
-    return "%idegC" % val
+    return "%idegC" % val, val, "degC"
     
 def obc_v_convert(packet):
     N = float(packet)
     val = (N*2 / 100)
-    return "%.2fV" % val
+    return "%.2fV" % val, val, "V"
 
 def obc_temp_convert(packet):
     N = int(packet[1:2])
     sgn = int(packet[0])
     val = -1 * sgn + (N - 64)
-    return "%idegC" % val
+    return "%idegC" % val, val, "degC"
 
 def dcdc_out_i_convert(packet):
     N = int(packet)
     val = (N + 256)
-    return "%imA" % val
+    return "%imA" % val, val, "mA"
     
 def dcdc_out_v_convert(packet):
     N = float(packet)
     val = (N + 256)/ 100
-    return "%.2fV" % val
+    return "%.2fV" % val, val, "V"
     
 def supply_voltage_convert(packet):
     supply_v = float(packet)/10
-    return "%.1fV" % supply_v
+    return "%.1fV" % supply_v, supply_v, "V"
 
 def supply_current_convert(packet):
     supply_i = int(packet)
-    return "%imA" % supply_i
+    return "%imA" % supply_i, supply_i, "mA"
 
 def op_mode(mode):
     return {
@@ -365,4 +420,118 @@ def callsign_lookup(call):
         "BJ1SE": "XW-2D",
         "BJ1SF": "XW-2E",
         "BJ1SG": "XW-2F",
-    }[call]
+    }[call] 
+
+def get_table_subjects():
+    main_tlm = (
+        "ID (From Callsign)",
+        "Data frame mark",
+        "Current operating mode",
+        "Primary power supply voltage",
+        "Primary power supply current",
+        "DC / DC converter output voltage",
+        "DC / DC converter output current",
+        "OBC power voltage",
+        "OBC temperature",
+        "RF power amplifier temperature",
+        "Receiver AGC voltage",
+        "RF forward power",
+        "RF reflected power"
+         )
+    
+    obc_tlm = (
+        "CPU Reset Counter",
+        "Command transmission counter",
+        "CRC check result",
+        "Instruction counter 1",
+        "Instruction counter 2",
+        "Telemetry frames received counter",
+        "Telemetry frames transmitted counter",
+        "Instruction counter 3",
+        "Instruction counter 4",
+        "Power on operating mode",
+        "Write FLASH success flag",
+        "I2C software watchdog switch flag",
+        "I2C reconnecting initialized counter",
+        "TC software watchdog switch flag",
+        "TC software watchdog reset times counter",
+        "ADC software watchdog switch flag",
+        "ADC software watchdog reset times counter",
+        "Temperature measurement software watchdog switch flag",
+        "Temperature software watchdog reset times counter",
+        "CPU ADC watchdog switch flag",
+        "CPU ADC watchdog reset times counter",
+        "SPI software watchdog switch flag",
+        "SPI reconnecting initialized counter",
+        "FLASH successfully configured flag",
+        "Telemetry data packet counter",
+        "Satellite Number",
+        "Software version number",
+        "Telemetry transmission rate flag",
+        "Check flag"
+        )
+    return (main_tlm, obc_tlm)
+        
+        
+
+def generate_packet_string(decoded_packet):
+    titles = get_table_subjects()
+    
+    #print(decoded_packet)
+    
+    print_string_main = tabulate([
+        [titles[0][0], decoded_packet[0]],
+        [titles[0][1], decoded_packet[1]],
+        [titles[0][2], decoded_packet[2]],
+        [titles[0][3], decoded_packet[3][0]],
+        [titles[0][4], decoded_packet[4][0]],
+        [titles[0][5], decoded_packet[5][0]],
+        [titles[0][6], decoded_packet[6][0]],
+        [titles[0][7], decoded_packet[7][0]],
+        [titles[0][8], decoded_packet[8][0]],
+        [titles[0][9], decoded_packet[9][0]],
+        [titles[0][10], decoded_packet[10][0]],
+        [titles[0][11], decoded_packet[11][0]],
+        [titles[0][12], decoded_packet[12][0]],
+        ], headers=['Parameter', 'Value'], tablefmt="presto")
+    
+    obc_data = decoded_packet[13]
+    
+    #print(len(obc_data))
+    
+    obc_vals = []
+    for i in range(0, 25):
+        obc_vals.append([titles[1][i], obc_data[i]])
+        
+    print_string_obc = tabulate(obc_vals, headers=['Parameter', 'Value'], tablefmt="presto")
+    
+    return print_string_main, print_string_obc
+
+def print_packet(decoded_packet, pkt_no, no_packets):
+    
+    print_string, print_string_obc = generate_packet_string(decoded_packet)
+    
+    print("Packet %i/%i" % (pkt_no, no_packets))
+    
+    print("+-- Satellite Parameters:\n")
+    print(print_string)
+    print("\n")
+    print("+-- OBC Parameters:\n")
+    print(print_string_obc)
+    
+def get_titles():
+    intro = """
++-----------------------------------------+
+|                                         |
+|      xw2read - A simple XW-2            |
+|             CW telemetry decoder        |
+|                                         |
+|      Jonathan Rawlinson/M0ZJO 2018      |
+|                                         |
+|               MIT Licence               |
+|                                         |
++-----------------------------------------+
+
+"""
+    return intro
+    
